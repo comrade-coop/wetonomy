@@ -1,5 +1,7 @@
 using Apocryph.Agents.Testbed.Api;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Wetonomy.TokenActionAgents.Messages;
 using Wetonomy.TokenActionAgents.Messages.Notifications;
 using Wetonomy.TokenActionAgents.Publications;
@@ -10,7 +12,7 @@ namespace Wetonomy.TokenActionAgents
 {
     public class TokenMinterAgent<T> where T: IEquatable<T>
     {
-        public AgentContext<RecipientState<T>> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
         {
 
             var agentState = state as RecipientState<T> ?? new RecipientState<T>();
@@ -33,14 +35,27 @@ namespace Wetonomy.TokenActionAgents
                     //}
                 }
 
-                return context;
+                return Task.FromResult(context);
             }
 
             switch (message)
             {
-                case TokenActionAgentInitMessage<T> organizationInitMessage:
-                    context.State.TokenManagerAgent = organizationInitMessage.TokenManagerAgentCapability;
-                    context.State.TriggerToAction = organizationInitMessage.TriggererToAction;
+
+                case TokenActionAgentInitMessage<T> initMessage:
+                    context.State.TokenManagerAgent = initMessage.TokenManagerAgentCapability;
+                    context.State.TriggerToAction = initMessage.TriggererToAction;
+
+                    var distributeCapabilityMessage = new DistributeCapabilitiesMessage
+                    {
+                        Id = self.Issuer,
+                        AgentCapabilities = new Dictionary<string, AgentCapability>() {
+                            {"AddRecipientMessage", context.IssueCapability(new[]{ typeof(AddRecipientMessage<T>) }) },
+                            {"RemoveRecipientMessage", context.IssueCapability(new[]{ typeof(RemoveRecipientMessage<T>) }) },
+                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage<T>) }) },
+                        }
+                    };
+
+                    context.SendMessage(initMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
                     break;
 
                 case AddRecipientMessage<T> addMessage:
@@ -62,7 +77,7 @@ namespace Wetonomy.TokenActionAgents
                     break;
             }
 
-            return context;
+            return Task.FromResult(context);
         }
     }
 }

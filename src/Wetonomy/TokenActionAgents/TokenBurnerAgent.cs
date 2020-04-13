@@ -7,12 +7,13 @@ using Wetonomy.TokenManager.Messages.NotificationsMessages;
 using System.Linq;
 using Wetonomy.TokenActionAgents.State;
 using Wetonomy.TokenActionAgents.Functions;
+using System.Threading.Tasks;
 
 namespace Wetonomy.TokenActionAgents
 {
     public class TokenBurnerAgent<T> where T : IEquatable<T>
     {
-        public AgentContext<TokenBurnerState<T>> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<TokenBurnerState<T>>> Run(object state, AgentCapability self, object message)
         {
             var context = new AgentContext<TokenBurnerState<T>>(state as TokenBurnerState<T>, self);
 
@@ -26,7 +27,7 @@ namespace Wetonomy.TokenActionAgents
                     //here we need to make a publication TokensBurnedTriggerer
                 }
 
-                return context;
+                return Task.FromResult(context);
             }
 
             switch(message)
@@ -57,7 +58,7 @@ namespace Wetonomy.TokenActionAgents
                     break;
             }
 
-            return context;
+            return Task.FromResult(context);
         }
 
     }

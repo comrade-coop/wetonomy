@@ -9,7 +9,8 @@ using Wetonomy.TokenActionAgents.Messages.Notifications;
 
 namespace Wetonomy.TokenActionAgents.Functions
 {
-    public static class TokenBurnerFunctions<T> where T : IEquatable<T>
+    [System.Serializable]
+    public class TokenBurnerFunctions<T> where T : IEquatable<T>
     {
         public static IList<object> SelfBurn(RecipientState<T> _, AbstractTrigger message)
         {

@@ -25,7 +25,7 @@ namespace Wetonomy.FunctionApp
         {
             public Dictionary<string, AgentCapability> MoneyTokenMinterCapabilities;
         }
-        public AgentContext<OrganizationState> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<OrganizationState>> Run(object state, AgentCapability self, object message)
         {
             var organizationState = state as OrganizationState?? new OrganizationState();
             var context = new AgentContext<OrganizationState>(organizationState, self);
@@ -36,7 +36,6 @@ namespace Wetonomy.FunctionApp
                 case AgentRootInitMessage _:
                     var moneyTokenManagerInitMessage = new TokenManagerInitMessage
                     {
-                        Id = "moneyTokenManager",
                         CreatorAgentCapability = distributeCapability
                     };
 
@@ -63,35 +62,32 @@ namespace Wetonomy.FunctionApp
 
                             var cashTokenManagerInitMessage = new TokenManagerInitMessage
                             {
-                                Id = "cashTokenManager",
                                 CreatorAgentCapability = distributeCapability
                             };
                             var debtTokenManagerInitMessage = new TokenManagerInitMessage
                             {
-                                Id = "debtTokenManager",
                                 CreatorAgentCapability = distributeCapability
                             };
                             var allowanceTokenManagerInitMessage = new TokenManagerInitMessage
                             {
-                                Id = "allowanceTokenBurner",
                                 CreatorAgentCapability = distributeCapability
                             };
 
                             context.CreateAgent("cashTokenManager", "TokenManagerAgent", cashTokenManagerInitMessage, null);
-                            context.CreateAgent("debtTokenManager", "TokenManagerAgent", debtTokenManagerInitMessage, null);
-                            context.CreateAgent("allowanceTokenBurner", "TokenManagerAgent", allowanceTokenManagerInitMessage, null);
+                            //context.CreateAgent("debtTokenManager", "TokenManagerAgent", debtTokenManagerInitMessage, null);
+                            //context.CreateAgent("allowanceTokenBurner", "TokenManagerAgent", allowanceTokenManagerInitMessage, null);
                             break;
 
                         case "cashTokenManager":
-                            var splitCapability = DistributeCapabilitiesMessage.AgentCapabilities["TransferTokenMessage"];
-                            var tokenSplitterAgent = new TokenActionAgentInitMessage<AgentCapability>(
-                                splitCapability,
-                                distributeCapability,
-                                new Dictionary<(string, Type), TriggeredAction<AgentCapability>>()
-                                {
-                                        { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), TokenSplitterFunctions<AgentCapability>.UniformSplitter}
-                                });
-                            context.CreateAgent("cashTokenSplitter", "TokenSplitter", tokenSplitterAgent, null);
+                            //var splitCapability = DistributeCapabilitiesMessage.AgentCapabilities["TransferTokenMessage"];
+                            //var tokenSplitterAgent = new TokenActionAgentInitMessage<AgentCapability>(
+                            //    splitCapability,
+                            //    distributeCapability,
+                            //    new Dictionary<(string, Type), TriggeredAction<AgentCapability>>()
+                            //    {
+                            //            { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), TokenSplitterFunctions<AgentCapability>.UniformSplitter}
+                            //    });
+                            //context.CreateAgent("cashTokenSplitter", "TokenSplitterAgent", tokenSplitterAgent, null);
 
 
                             var burnCapability = DistributeCapabilitiesMessage.AgentCapabilities["BurnTokenMessage"];
@@ -105,14 +101,14 @@ namespace Wetonomy.FunctionApp
                             context.CreateAgent("cashTokenBurnerForDebt", "TokenBurnerAgent", cashTokenBurnerForDebt, null);
 
 
-                            var cashTokenBurnerForAllowance = new TokenActionAgentInitMessage<AgentCapability>(
-                                burnCapability,
-                                distributeCapability,
-                                new Dictionary<(string, Type), TriggeredAction<AgentCapability>>()
-                                {
-                                        { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), TokenBurnerFunctions<AgentCapability>.SelfBurn}
-                                });
-                            context.CreateAgent("cashTokenBurnerForAllowance", "TokenBurnerAgent", cashTokenBurnerForDebt, null);
+                            //var cashTokenBurnerForAllowance = new TokenActionAgentInitMessage<AgentCapability>(
+                            //    burnCapability,
+                            //    distributeCapability,
+                            //    new Dictionary<(string, Type), TriggeredAction<AgentCapability>>()
+                            //    {
+                            //            { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), TokenBurnerFunctions<AgentCapability>.SelfBurn}
+                            //    });
+                            //context.CreateAgent("cashTokenBurnerForAllowance", "TokenBurnerAgent", cashTokenBurnerForDebt, null);
                             break;
 
                         case "debtTokenManager":
@@ -158,7 +154,7 @@ namespace Wetonomy.FunctionApp
                     break;
 
             }
-            return context;
+            return Task.FromResult(context);
         }
     }
 

@@ -11,7 +11,7 @@ namespace Apocryph.Agent.FunctionApp.Agents
 {
     public class AgentTwo
     {
-        public AgentContext<object> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<object>> Run(object state, AgentCapability self, object message)
         {
             var context = new AgentContext<object>(state, self);
             if(message is PingPongMessage initMessage && initMessage.AgentTwo == null)
@@ -32,7 +32,7 @@ namespace Apocryph.Agent.FunctionApp.Agents
                     Content = "Pong"
                 }, null);
             }
-            return context;
+            return Task.FromResult(context);
         }
     }
 
@@ -54,7 +54,7 @@ namespace Apocryph.Agent.FunctionApp.Agents
             [PerperStream("output")] IAsyncCollector<AgentCommands> output,
             CancellationToken cancellationToken)
         {
-            await _testbed.Agent(new AgentTwo().Run, agentId, initMessage, commands, output, cancellationToken);
+            await _testbed.Agent<object>(new AgentTwo().Run, agentId, initMessage, commands, output, cancellationToken);
         }
     }
 }

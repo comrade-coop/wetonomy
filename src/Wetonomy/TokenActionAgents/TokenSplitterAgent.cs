@@ -1,5 +1,6 @@
 using Apocryph.Agents.Testbed.Api;
 using System;
+using System.Threading.Tasks;
 using Wetonomy.TokenActionAgents.Messages;
 using Wetonomy.TokenActionAgents.Publications;
 using Wetonomy.TokenActionAgents.State;
@@ -9,7 +10,7 @@ namespace Wetonomy.TokenActionAgents
 {
     public class TokenSplitterAgent<T> where T: IEquatable<T>
     {
-        public AgentContext<RecipientState<T>> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
         {
             var context = new AgentContext<RecipientState<T>>(state as RecipientState<T>, self);
 
@@ -22,7 +23,7 @@ namespace Wetonomy.TokenActionAgents
                     context.SendMessage(context.State.TokenManagerAgent, action, null);
                 }
 
-                return context;
+                return Task.FromResult(context);
             }
 
             switch (message)
@@ -51,7 +52,7 @@ namespace Wetonomy.TokenActionAgents
                     break;
             }
 
-            return context;
+            return Task.FromResult(context);
         }
     }
 }

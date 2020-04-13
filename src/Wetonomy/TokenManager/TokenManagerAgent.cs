@@ -1,6 +1,7 @@
 using Apocryph.Agents.Testbed.Api;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading.Tasks;
 using Wetonomy.TokenManager.Messages;
 using Wetonomy.TokenManager.Messages.NotificationsMessages;
 using Wetonomy.TokenManager.Publications;
@@ -63,7 +64,7 @@ namespace Wetonomy.TokenManager
             }
         }
 
-        public AgentContext<TokenManagerState> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<TokenManagerState>> Run(object state, AgentCapability self, object message)
         {
             var context = new AgentContext<TokenManagerState>(state as TokenManagerState,self);
             switch (message)
@@ -71,7 +72,7 @@ namespace Wetonomy.TokenManager
                 case TokenManagerInitMessage tokenManagerInitMessage:
                     var distributeCapabilityMessage = new DistributeCapabilitiesMessage
                     {
-                        Id = tokenManagerInitMessage.Id,
+                        Id = self.Issuer,
                         AgentCapabilities = new Dictionary<string, AgentCapability>() {
                             {"BurnTokenMessage", context.IssueCapability(new[]{ typeof(BurnTokenMessage<T>) }) },
                             {"MintTokenMessage", context.IssueCapability(new[]{ typeof(MintTokenMessage<T>) }) },
@@ -117,7 +118,7 @@ namespace Wetonomy.TokenManager
                     }
                     break;
             }
-            return context;
+            return Task.FromResult(context);
         }
     }
 }
