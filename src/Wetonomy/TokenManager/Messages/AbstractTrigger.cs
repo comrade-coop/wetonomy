@@ -8,7 +8,7 @@ namespace Wetonomy.TokenManager.Messages
     [System.Serializable]
     public abstract class AbstractTrigger
     {
-        public BigInteger Amount { get; protected set; }
+        public BigInteger Amount { get; set; }
 
         public string Sender { get; protected set; }
     }

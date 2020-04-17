@@ -10,9 +10,9 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents
 {
-    public class TokenMinterAgent<T> where T: IEquatable<T>
+    public class TokenMinterAgent<T>: BaseTokenActionAgent<T> where T: IEquatable<T>
     {
-        public Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
+        public new Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
         {
 
             var agentState = state as RecipientState<T> ?? new RecipientState<T>();
@@ -26,13 +26,13 @@ namespace Wetonomy.TokenActionAgents
                 {
                     if(action is MintTokenMessage<T> mintMsg)
                     {
-                        context.SendMessage(context.State.TokenManagerAgent, action, null);
+                        context.SendMessage(context.State.TokenManagerAgent, mintMsg, null);
                     }
                     //Publication
-                    //if(action is TokensMintedTriggerer<T> trigger)
-                    //{
-                    //    context.SendMessage(context.State.TokenManagerAgent, action, null);
-                    //}
+                    if (action is TokensMintedTriggerer<T> trigger)
+                    {
+                        context.MakePublication(trigger);
+                    }
                 }
 
                 return Task.FromResult(context);
@@ -40,41 +40,9 @@ namespace Wetonomy.TokenActionAgents
 
             switch (message)
             {
-
-                case TokenActionAgentInitMessage<T> initMessage:
-                    context.State.TokenManagerAgent = initMessage.TokenManagerAgentCapability;
-                    context.State.TriggerToAction = initMessage.TriggererToAction;
-
-                    var distributeCapabilityMessage = new DistributeCapabilitiesMessage
-                    {
-                        Id = self.Issuer,
-                        AgentCapabilities = new Dictionary<string, AgentCapability>() {
-                            {"AddRecipientMessage", context.IssueCapability(new[]{ typeof(AddRecipientMessage<T>) }) },
-                            {"RemoveRecipientMessage", context.IssueCapability(new[]{ typeof(RemoveRecipientMessage<T>) }) },
-                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage<T>) }) },
-                        }
-                    };
-
-                    context.SendMessage(initMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
-                    break;
-
-                case AddRecipientMessage<T> addMessage:
-                    if (context.State.AddRecipient(addMessage.Recipient))
-                    {
-                        context.MakePublication(new RecipientAddedPublication<T>(addMessage.Recipient));
-                    }
-                    break;
-
-                case RemoveRecipientMessage<T> removeMessage:
-                    if (context.State.RemoveRecipient(removeMessage.Recipient))
-                    {
-                        context.MakePublication(new RecipientRemovedPublication<T>(removeMessage.Recipient));
-                    }
-                    break;
-
-                case AddTriggerToActionMessage<T> addTriggerMessage:
-                    context.State.TriggerToAction.Add(addTriggerMessage.Trigger, addTriggerMessage.Action);
-                    break;
+                //case SomeMessage msg : break;
+                default:
+                    return base.Run(agentState, self, message);
             }
 
             return Task.FromResult(context);

@@ -1,12 +1,11 @@
 using Apocryph.Agents.Testbed.Api;
 using System;
 using System.Collections.Generic;
+using Wetonomy.TokenActionAgents.Strategies;
 using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents.State
-{
-
-    public delegate IList<object> TriggeredAction<T>(RecipientState<T> state, AbstractTrigger message) where T: IEquatable<T>;
+{   
     public class RecipientState<T> where T: IEquatable<T>
     {
 
@@ -14,7 +13,7 @@ namespace Wetonomy.TokenActionAgents.State
 
         //using string for Agent identifier because we do not need capabilities,
         //the trigger is notification that something has happened
-        public Dictionary<(string, Type), TriggeredAction<T>> TriggerToAction;
+        public Dictionary<(string, Type), ITriggeredAction<T>> TriggerToAction;
 
         public List<T> Recipients = new List<T>();
 
@@ -37,9 +36,9 @@ namespace Wetonomy.TokenActionAgents.State
 
         public static IList<object> TriggerCheck(RecipientState<T> state, string sender, AbstractTrigger message)
         {
-            TriggeredAction<T> func = state.TriggerToAction[(sender, message.GetType())];
+            ITriggeredAction<T> func = state.TriggerToAction[(sender, message.GetType())];
 
-            IList<object> result = func.Invoke(state, message);
+            IList<object> result = func.Execute(state, message);
 
             return result;
 

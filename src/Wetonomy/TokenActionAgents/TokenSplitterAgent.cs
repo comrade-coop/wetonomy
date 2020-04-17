@@ -1,5 +1,6 @@
 using Apocryph.Agents.Testbed.Api;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Wetonomy.TokenActionAgents.Messages;
 using Wetonomy.TokenActionAgents.Publications;
@@ -8,11 +9,13 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents
 {
-    public class TokenSplitterAgent<T> where T: IEquatable<T>
+    public class TokenSplitterAgent<T>: BaseTokenActionAgent<T> where T: IEquatable<T>
     {
-        public Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
+        public new Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
         {
-            var context = new AgentContext<RecipientState<T>>(state as RecipientState<T>, self);
+
+            var agentState = state as RecipientState<T> ?? new RecipientState<T>();
+            var context = new AgentContext<RecipientState<T>>(agentState, self);
 
             if (message is AbstractTrigger msg && context.State.TriggerToAction.ContainsKey((msg.Sender, message.GetType())))
             {
@@ -28,28 +31,8 @@ namespace Wetonomy.TokenActionAgents
 
             switch (message)
             {
-                case TokenActionAgentInitMessage<T> organizationInitMessage:
-                    context.State.TokenManagerAgent = organizationInitMessage.TokenManagerAgentCapability;
-                    context.State.TriggerToAction = organizationInitMessage.TriggererToAction;
-                    break;
-
-                case AddRecipientMessage<T> addMessage:
-                    if (context.State.AddRecipient(addMessage.Recipient))
-                    {
-                        context.MakePublication(new RecipientAddedPublication<T>(addMessage.Recipient));
-                    }
-                    break;
-
-                case RemoveRecipientMessage<T> removeMessage:
-                    if (context.State.RemoveRecipient(removeMessage.Recipient))
-                    {
-                        context.MakePublication(new RecipientRemovedPublication<T>(removeMessage.Recipient));
-                    }
-                    break;
-
-                case AddTriggerToActionMessage<T> addTriggerMessage:
-                    context.State.TriggerToAction.Add(addTriggerMessage.Trigger, addTriggerMessage.Action);
-                    break;
+                default:
+                    return base.Run(agentState, self, message);
             }
 
             return Task.FromResult(context);

@@ -6,8 +6,8 @@ using Wetonomy.TokenManager.Messages;
 using Wetonomy.TokenManager.Messages.NotificationsMessages;
 using System.Linq;
 using Wetonomy.TokenActionAgents.State;
-using Wetonomy.TokenActionAgents.Functions;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Wetonomy.TokenActionAgents
 {
@@ -15,7 +15,8 @@ namespace Wetonomy.TokenActionAgents
     {
         public Task<AgentContext<TokenBurnerState<T>>> Run(object state, AgentCapability self, object message)
         {
-            var context = new AgentContext<TokenBurnerState<T>>(state as TokenBurnerState<T>, self);
+            var agentState = state as TokenBurnerState<T> ?? new TokenBurnerState<T>();
+            var context = new AgentContext<TokenBurnerState<T>>(agentState, self);
 
             if (message is AbstractTrigger msg && context.State.TriggerToAction.ContainsKey((msg.Sender, message.GetType())))
             {
@@ -32,10 +33,27 @@ namespace Wetonomy.TokenActionAgents
 
             switch(message)
             {
-                case TokenActionAgentInitMessage<T> organizationInitMessage:
-                    context.State.TokenManagerAgent = organizationInitMessage.TokenManagerAgentCapability;
-                    context.State.TriggerToAction = organizationInitMessage.TriggererToAction;
+                case TokenActionAgentInitMessage<T> initMessage:
+                    context.State.TokenManagerAgent = initMessage.TokenManagerAgentCapability;
+                    context.State.TriggerToAction = initMessage.TriggererToAction;
+                    var distributeCapabilityMessage = new DistributeCapabilitiesMessage
+                    {
+                        Id = self.Issuer,
+                        AgentCapabilities = new Dictionary<string, AgentCapability>() {
+                            {"GetTokensMessage", context.IssueCapability(new[]{ typeof(GetTokensMessage<T>) }) },
+                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage<T>) }) },
+                        }
+                    };
+                    if (initMessage.Subscription != null)
+                    {
+                        foreach (var agent in initMessage.Subscription)
+                        {
+                            context.AddSubscription(agent);
+                        }
+                    }
+                    context.SendMessage(initMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
                     break;
+
                 case TokensTransferedNotification<T> transferedMessage:
                     if (context.State.AddRecipient(transferedMessage.From))
                     {

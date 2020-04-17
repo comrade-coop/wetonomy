@@ -1,15 +1,25 @@
-using Apocryph.Agents.Testbed.Api;
 using System;
-using System.Collections.Generic;
-using Wetonomy.TokenActionAgents.Functions;
-using Wetonomy.TokenActionAgents.Messages;
-using Wetonomy.TokenActionAgents.Messages.Notifications;
-using Wetonomy.TokenActionAgents.State;
-using Wetonomy.TokenManager.Messages;
-using Wetonomy.TokenManager.Messages.NotificationsMessages;
 
 namespace Wetonomy
 {
+    interface ITokenPair<T>
+    {
+        T GetTag();
+        T GetAgentId();
+    }
+
+    class TokenPair : ITokenPair<string>
+    {
+        public string GetAgentId()
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetTag()
+        {
+            throw new NotImplementedException();
+        }
+    }
     public class Program
     {
         
