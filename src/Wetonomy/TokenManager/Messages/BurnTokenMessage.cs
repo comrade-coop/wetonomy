@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Wetonomy.TokenManager.Messages
 {
-    class BurnTokenMessage<T>
+    public class BurnTokenMessage<T>
     {
         public BigInteger Amount { get; }
         public T From { get; }

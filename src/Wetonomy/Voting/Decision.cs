@@ -1,3 +1,4 @@
+using Apocryph.Agents.Testbed.Core;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -12,7 +13,7 @@ namespace Wetonomy.Voting
     public class Decision<T>
     {
         public string DecisionId { get; }
-        public object DecisionActionMessage { get; }
+        public ForwardableMessage DecisionActionMessage { get; }
 
         public bool Executable { get; }
 
@@ -24,7 +25,7 @@ namespace Wetonomy.Voting
 
         public T Evaluation { get; set; }
 
-        public Decision(string id, bool executable, object message, DateTime start, DateTime finale)
+        public Decision(string id, bool executable, ForwardableMessage message, DateTime start, DateTime finale)
         {
             DecisionId = id;
             Executable = executable;

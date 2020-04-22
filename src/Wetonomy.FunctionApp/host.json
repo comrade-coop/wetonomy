@@ -1,8 +1,9 @@
 {
-    "version": "2.0",
-    "logging": {
-        "logLevel": {
-            "Apocryph.Agents.Testbed": "Trace"
-        }
+  "version": "2.0",
+  "logging": {
+    "logLevel": {
+      "Apocryph.Agents.Testbed": "Trace",
+      //"Perper.WebJobs.Extensions": "Trace"
     }
+  }
 }

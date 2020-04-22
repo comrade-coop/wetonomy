@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Wetonomy.FunctionApp": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

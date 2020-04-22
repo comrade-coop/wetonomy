@@ -18,7 +18,7 @@ namespace Wetonomy.FunctionApp
             var context = new AgentContext<object>(state, self);
             if (message is AgentRootInitMessage rootInitMessage)
             {
-                for (int i = 0; i < 10; i++)
+                for (int i = 0; i < 20; i++)
                 {
                     context.CreateAgent("Agent" + i, "SingleAgent", new NumberMessage() { Creator = self, Number = i }, null);
                 }

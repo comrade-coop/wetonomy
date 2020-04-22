@@ -5,7 +5,6 @@ using System.Text;
 
 namespace Wetonomy.TokenManager.Messages
 {
-    [System.Serializable]
     public abstract class AbstractTrigger
     {
         public BigInteger Amount { get; set; }

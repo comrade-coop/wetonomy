@@ -5,12 +5,14 @@ using Apocryph.Agents.Testbed.Api;
 using Wetonomy.Voting.Messages;
 using Wetonomy.Voting.Publications;
 using System.Linq;
+using Apocryph.Agents.Testbed.Core;
+using System.Threading.Tasks;
 
 namespace Wetonomy.Voting
 {
-    public static class VotingAgent<T,V> where V : IEnumerable
+    public class VotingAgent<T,V>: ForwardingAgent where V : IEnumerable
     {
-        public class VotingState
+        public class VotingState: BaseState
         {
             //Just Temporary solution
             public int nonce = 0;
@@ -19,15 +21,28 @@ namespace Wetonomy.Voting
             public Dictionary<string, Decision<T>> Decisions = new Dictionary<string, Decision<T>>();
             public Dictionary<string, Dictionary<string, V>> DecisionsVotes = new Dictionary<string, Dictionary<string, V>>();
 
-            public Dictionary<string, AgentCapability> Capabilities = new Dictionary<string, AgentCapability>();
+            //public Dictionary<string, AgentCapability> Capabilities = new Dictionary<string, AgentCapability>();
         }
 
-        public static AgentContext<VotingState> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<VotingState>> Run(object state, AgentCapability self, object message)
         {
             var context = new AgentContext<VotingState>(state as VotingState, self);
 
             switch (message)
             {
+                case InitWetonomyAgentMessage initMsg:
+                    var distributeCapabilityMessage = new DistributeCapabilitiesMessage
+                    {
+                        Id = self.Issuer,
+                        AgentCapabilities = new Dictionary<string, AgentCapability>() {
+                            {"AddVoteMessage", context.IssueCapability(new[]{ typeof(AddVoteMessage<T>) })},
+                            {"AddDecisionMessage", context.IssueCapability(new[]{ typeof(AddDecisionMessage) })},
+                            //{"ForwardMessage", context.IssueCapability(new[]{ typeof(ForwardMessage) })}
+                        }
+                    };
+                    context.SendMessage(initMsg.CreatorAgentCapability, distributeCapabilityMessage, null);
+                    break;
+
                 case AddVoteMessage<V> addVoteMessage:
                     context.State.DecisionsVotes[addVoteMessage.DecisionId].Add(addVoteMessage.Sender, addVoteMessage.Vote);
                     context.MakePublication(new NewVotePublication<V>(addVoteMessage.DecisionId, addVoteMessage.Vote));
@@ -71,14 +86,13 @@ namespace Wetonomy.Voting
                         if(decisionEvaluation is bool check && check)
                         {
                             // should discuss how we store Capabilities
-                            context.SendMessage(null, dec.DecisionActionMessage, null);
+                            context.ForwardMessage(null, dec.DecisionActionMessage, null);
                         }
                     }
-
                     break;
             }
 
-            return context;
+            return Task.FromResult(context);
         }
     }
 }

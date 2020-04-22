@@ -23,7 +23,7 @@ namespace Apocryph.Agent.FunctionApp
             [PerperStreamTrigger(RunOnStartup = true)] PerperStreamContext context,
             CancellationToken cancellationToken)
         {
-            await _testbed.Setup(context, "ManyAgentsTest", "Runtime", "Monitor", cancellationToken);
+            await _testbed.Setup(context, "OrganizationAgent", "Runtime", "Monitor", cancellationToken);
         }
 
         [FunctionName("Runtime")]

@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Wetonomy.TokenManager.Messages
 {
-    class TransferTokenMessage<T>
+    public class TransferTokenMessage<T>
     {
         public BigInteger Amount { get; }
         public T From { get; }

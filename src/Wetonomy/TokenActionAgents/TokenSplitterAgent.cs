@@ -32,7 +32,10 @@ namespace Wetonomy.TokenActionAgents
             switch (message)
             {
                 default:
-                    return base.Run(agentState, self, message);
+                    Task<AgentContext<RecipientState<T>>> secondaryContextTask = base.Run(agentState, self, message);
+                    var secondaryContext = secondaryContextTask.GetAwaiter().GetResult();
+                    context.MergeSecondaryContext(secondaryContext.GetCommands());
+                    break;
             }
 
             return Task.FromResult(context);

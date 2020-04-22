@@ -2,24 +2,13 @@ using System;
 
 namespace Wetonomy
 {
-    interface ITokenPair<T>
+    public abstract class TokenPair<T>
     {
-        T GetTag();
-        T GetAgentId();
+        public abstract string GetAgentId();
+
+        public abstract T GetTag();
     }
 
-    class TokenPair : ITokenPair<string>
-    {
-        public string GetAgentId()
-        {
-            throw new NotImplementedException();
-        }
-
-        public string GetTag()
-        {
-            throw new NotImplementedException();
-        }
-    }
     public class Program
     {
         

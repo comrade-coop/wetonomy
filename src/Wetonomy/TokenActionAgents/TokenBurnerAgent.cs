@@ -8,6 +8,7 @@ using System.Linq;
 using Wetonomy.TokenActionAgents.State;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Wetonomy.TokenActionAgents.Messages.Notifications;
 
 namespace Wetonomy.TokenActionAgents
 {
@@ -22,10 +23,17 @@ namespace Wetonomy.TokenActionAgents
             {
                 var result = RecipientState<T>.TriggerCheck(context.State, msg.Sender, msg);
 
-                foreach (BurnTokenMessage<T> action in result)
+                foreach (var action in result)
                 {
-                    context.SendMessage(context.State.TokenManagerAgent, action, null);
-                    //here we need to make a publication TokensBurnedTriggerer
+                    if (action is BurnTokenMessage<T> burnMsg)
+                    {
+                        context.SendMessage(context.State.TokenManagerAgent, burnMsg, null);
+                    }
+                    //Publication
+                    if (action is TokensBurnedTriggerer<T> trigger)
+                    {
+                        context.MakePublication(trigger);
+                    }
                 }
 
                 return Task.FromResult(context);

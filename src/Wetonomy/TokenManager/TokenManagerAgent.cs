@@ -15,6 +15,8 @@ namespace Wetonomy.TokenManager
             public BigInteger TotalBalance { get; private set; }
             public Dictionary<T, BigInteger> TokenBalances = new Dictionary<T, BigInteger>();
 
+            //public TokenManagerState()
+
             public bool Burn(BigInteger amount, T from)
             {
                 if (!TokenBalances.ContainsKey(from)) return false;
@@ -66,10 +68,11 @@ namespace Wetonomy.TokenManager
 
         public Task<AgentContext<TokenManagerState>> Run(object state, AgentCapability self, object message)
         {
-            var context = new AgentContext<TokenManagerState>(state as TokenManagerState,self);
+            var agentState = state as TokenManagerState ?? new TokenManagerState();
+            var context = new AgentContext<TokenManagerState>(agentState, self);
             switch (message)
             {
-                case TokenManagerInitMessage tokenManagerInitMessage:
+                case InitWetonomyAgentMessage tokenManagerInitMessage:
                     var distributeCapabilityMessage = new DistributeCapabilitiesMessage
                     {
                         Id = self.Issuer,

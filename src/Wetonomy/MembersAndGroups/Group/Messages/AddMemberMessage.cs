@@ -2,14 +2,14 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Wetonomy.Groups.Messages
+namespace Wetonomy.MembersAndGroups.Group.Messages
 {
-    class RemoveMemberMessage
+    public class AddMemberMessage
     {
         public string MemberAgentId { get; }
 
         // Stub implementation
-        public RemoveMemberMessage(string agentId)
+        public AddMemberMessage(string agentId)
         {
             MemberAgentId = agentId;
         }
