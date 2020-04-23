@@ -6,8 +6,8 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents.Strategies
 {
-	public interface ITriggeredAction<T> where T: IEquatable<T>
+	public interface ITriggeredAction
 	{
-		public IList<object> Execute(RecipientState<T> state, AbstractTrigger message);
+		public IList<object> Execute(RecipientState state, AbstractTrigger message);
     }
 }

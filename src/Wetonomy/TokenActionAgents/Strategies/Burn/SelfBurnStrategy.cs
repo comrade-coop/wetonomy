@@ -7,13 +7,13 @@ using Wetonomy.TokenManager.Messages.NotificationsMessages;
 
 namespace Wetonomy.TokenActionAgents.Strategies.Burn
 {
-	public class SelfBurnStrategy<T> : ITriggeredAction<T> where T: IEquatable<T>
+	public class SelfBurnStrategy : ITriggeredAction
 	{
-		public IList<object> Execute(RecipientState<T> _, AbstractTrigger message)
+		public IList<object> Execute(RecipientState _, AbstractTrigger message)
 		{
-			if (message is TokensTransferedNotification<T> msg)
+			if (message is TokensTransferedNotification msg)
 			{
-				var command = new BurnTokenMessage<T>(msg.Amount, msg.To);
+				var command = new BurnTokenMessage(msg.Amount, msg.To);
 				return new List<object>() { command };
 			}
 			return null;

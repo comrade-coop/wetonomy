@@ -5,12 +5,12 @@ using System.Text;
 
 namespace Wetonomy.TokenManager.Messages
 {
-    public class MintTokenMessage<T>
+    public class MintTokenMessage
     {
         public BigInteger Amount { get; }
-        public T To { get; }
+        public IAgentTokenKey To { get; }
 
-        public MintTokenMessage(BigInteger amount, T to)
+        public MintTokenMessage(BigInteger amount, IAgentTokenKey to)
         {
             Amount = amount;
             To = to;

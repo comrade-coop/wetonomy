@@ -8,16 +8,16 @@ using Wetonomy.TokenManager.Publications;
 
 namespace Wetonomy.TokenManager
 {
-    public class TokenManagerAgent<T> where T : class
+    public class TokenManagerAgent
     {
-        public class TokenManagerState: ITokenManagerState<T>
+        public class TokenManagerState: ITokenManagerState
         {
             public BigInteger TotalBalance { get; private set; }
-            public Dictionary<T, BigInteger> TokenBalances = new Dictionary<T, BigInteger>();
+            public Dictionary<IAgentTokenKey, BigInteger> TokenBalances;
 
             //public TokenManagerState()
 
-            public bool Burn(BigInteger amount, T from)
+            public bool Burn(BigInteger amount, IAgentTokenKey from)
             {
                 if (!TokenBalances.ContainsKey(from)) return false;
                 BigInteger current = TokenBalances[from];
@@ -36,7 +36,7 @@ namespace Wetonomy.TokenManager
                 return false;
             }
 
-            public bool Mint(BigInteger amount, T to)
+            public bool Mint(BigInteger amount, IAgentTokenKey to)
             {
                 if (TokenBalances.ContainsKey(to)) TokenBalances[to] += amount;
 
@@ -46,7 +46,7 @@ namespace Wetonomy.TokenManager
                 return true;
             }
 
-            public bool Transfer(BigInteger amount, T from, T to)
+            public bool Transfer(BigInteger amount, IAgentTokenKey from, IAgentTokenKey to)
             {
                 if (!TokenBalances.ContainsKey(from)) return false;
                 BigInteger current = TokenBalances[from];
@@ -77,46 +77,52 @@ namespace Wetonomy.TokenManager
                     {
                         Id = self.Issuer,
                         AgentCapabilities = new Dictionary<string, AgentCapability>() {
-                            {"BurnTokenMessage", context.IssueCapability(new[]{ typeof(BurnTokenMessage<T>) }) },
-                            {"MintTokenMessage", context.IssueCapability(new[]{ typeof(MintTokenMessage<T>) }) },
-                            {"TransferTokenMessage", context.IssueCapability(new[]{ typeof(TransferTokenMessage<T>) }) },
+                            {"BurnTokenMessage", context.IssueCapability(new[]{ typeof(BurnTokenMessage) }) },
+                            {"MintTokenMessage", context.IssueCapability(new[]{ typeof(MintTokenMessage) }) },
+                            {"TransferTokenMessage", context.IssueCapability(new[]{ typeof(TransferTokenMessage) }) },
                         }
                     };
 
                     context.SendMessage(tokenManagerInitMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
                     break;
-                case BurnTokenMessage<T> burnTokenMessage:
+                case BurnTokenMessage burnTokenMessage:
                     if(context.State.Burn(burnTokenMessage.Amount, burnTokenMessage.From))
                     {
-                        context.SendMessage(burnTokenMessage.From as AgentCapability, new TokensBurnedNotification<T>(self.Issuer, burnTokenMessage.Amount, burnTokenMessage.From), null);
+                        var notificationCapability = new AgentCapability(burnTokenMessage.From.GetAgentId(), typeof(TokensMintedNotification));
+
+                        context.SendMessage(notificationCapability, new TokensBurnedNotification(self.Issuer, burnTokenMessage.Amount, burnTokenMessage.From), null);
 
                         context.MakePublication(
-                            new TokenBurnPublication<T>(burnTokenMessage.Amount, burnTokenMessage.From)
+                            new TokenBurnPublication(burnTokenMessage.Amount, burnTokenMessage.From)
                         );
                     }
                     break;
 
-                case MintTokenMessage<T> mintTokenMessage:
+                case MintTokenMessage mintTokenMessage:
 
                     if (context.State.Mint(mintTokenMessage.Amount, mintTokenMessage.To))
                     {
-                        context.SendMessage(mintTokenMessage.To as AgentCapability, new TokensMintedNotification<T>(self.Issuer, mintTokenMessage.Amount, mintTokenMessage.To), null);
+                        var notificationCapability = new AgentCapability(mintTokenMessage.To.GetAgentId(), typeof(TokensMintedNotification));
+                        
+                        context.SendMessage(notificationCapability, new TokensMintedNotification(self.Issuer, mintTokenMessage.Amount, mintTokenMessage.To), null);
 
                         context.MakePublication(
-                            new TokenMintPublication<T>(mintTokenMessage.Amount, mintTokenMessage.To)
+                            new TokenMintPublication(mintTokenMessage.Amount, mintTokenMessage.To)
                         );
                     }
                     break;
 
-                case TransferTokenMessage<T> transferTokenMessage:
+                case TransferTokenMessage transferTokenMessage:
                     if (context.State.Transfer(transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To))
                     {
+                        var notificationCapabilityTo = new AgentCapability(transferTokenMessage.To.GetAgentId(), typeof(TokensMintedNotification));
+                        var notificationCapabilityFrom = new AgentCapability(transferTokenMessage.From.GetAgentId(), typeof(TokensMintedNotification));
 
-                        context.SendMessage(transferTokenMessage.From as AgentCapability, new TokensTransferedNotification<T>(self.Issuer, transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To), null);
-                        context.SendMessage(transferTokenMessage.To as AgentCapability, new TokensTransferedNotification<T>(self.Issuer, transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To), null);
+                        context.SendMessage(notificationCapabilityTo, new TokensTransferedNotification(self.Issuer, transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To), null);
+                        context.SendMessage(notificationCapabilityFrom, new TokensTransferedNotification(self.Issuer, transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To), null);
 
                         context.MakePublication(
-                            new TokenTransferPublication<T>(transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To)
+                            new TokenTransferPublication(transferTokenMessage.Amount, transferTokenMessage.From, transferTokenMessage.To)
                         );
                     }
                     break;

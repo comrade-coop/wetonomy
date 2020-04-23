@@ -3,24 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+using Wetonomy.TokenManager;
 using Wetonomy.TokenManager.Messages.NotificationsMessages;
 
 namespace Wetonomy.TokenActionAgents.State
 {
-    public class TokenBurnerState<T> : RecipientState<T> where T : IEquatable<T>
+    public class TokenBurnerState : RecipientState
     {
-        public HashSet<TokensTransferedNotification<T>> TransferMessages = new HashSet<TokensTransferedNotification<T>>();
+        public HashSet<TokensTransferedNotification> TransferMessages = new HashSet<TokensTransferedNotification>();
 
-        public bool GetTokens(T from, BigInteger amount, out T sender)
+        public bool GetTokens(IAgentTokenKey from, BigInteger amount, out IAgentTokenKey sender)
         {
             sender = default;
-            TokensTransferedNotification<T> element = TransferMessages.FirstOrDefault(x => x.From.Equals(from) && x.Amount == amount);
+            TokensTransferedNotification element = TransferMessages.FirstOrDefault(x => x.From.Equals(from) && x.Amount == amount);
             if (element == null) return false;
             BigInteger current = element.Amount;
             if (current > amount)
             {
                 //Not sure if we need this scenario
-                var newTokensMsg = new TokensTransferedNotification<T>(null, element.Amount, element.From, element.To);
+                var newTokensMsg = new TokensTransferedNotification(null, element.Amount, element.From, element.To);
                 sender = element.To;
                 TransferMessages.Add(newTokensMsg);
                 TransferMessages.Remove(element);

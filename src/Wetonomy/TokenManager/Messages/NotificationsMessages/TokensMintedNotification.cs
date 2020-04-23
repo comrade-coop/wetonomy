@@ -5,12 +5,12 @@ using System.Text;
 
 namespace Wetonomy.TokenManager.Messages.NotificationsMessages
 {
-    public class TokensMintedNotification<T> : AbstractTrigger
+    public class TokensMintedNotification : AbstractTrigger
     {
 
-        public T To { get; }
+        public IAgentTokenKey To { get; }
 
-        public TokensMintedNotification(string sender, BigInteger amount, T to)
+        public TokensMintedNotification(string sender, BigInteger amount, IAgentTokenKey to)
         {
             Sender = sender;
             Amount = amount;

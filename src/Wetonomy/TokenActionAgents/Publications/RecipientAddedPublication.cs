@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Wetonomy.TokenManager;
 
 namespace Wetonomy.TokenActionAgents.Publications
 {
-    class RecipientAddedPublication<T>
+    class RecipientAddedPublication
     {
-        public T Recipient;
+        public IAgentTokenKey Recipient;
 
-        public RecipientAddedPublication(T recipient)
+        public RecipientAddedPublication(IAgentTokenKey recipient)
         {
             Recipient = recipient;
         }

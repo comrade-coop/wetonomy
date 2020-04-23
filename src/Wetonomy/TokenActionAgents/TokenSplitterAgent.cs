@@ -9,30 +9,34 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents
 {
-    public class TokenSplitterAgent<T>: BaseTokenActionAgent<T> where T: IEquatable<T>
+    public class TokenSplitterAgent: BaseTokenActionAgent
     {
-        public new Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
+        public new Task<AgentContext<RecipientState>> Run(object state, AgentCapability self, object message)
         {
 
-            var agentState = state as RecipientState<T> ?? new RecipientState<T>();
-            var context = new AgentContext<RecipientState<T>>(agentState, self);
+            var agentState = state as RecipientState ?? new RecipientState();
+            var context = new AgentContext<RecipientState>(agentState, self);
 
-            if (message is AbstractTrigger msg && context.State.TriggerToAction.ContainsKey((msg.Sender, message.GetType())))
+            if (message is AbstractTrigger msg)
             {
-                var result = RecipientState<T>.TriggerCheck(context.State, msg.Sender, msg);
-
-                foreach (TransferTokenMessage<T> action in result)
+                var pair = new AgentTriggerPair(msg.Sender, message.GetType());
+                if (context.State.TriggerToAction.ContainsKey(pair))
                 {
-                    context.SendMessage(context.State.TokenManagerAgent, action, null);
-                }
+                    var result = RecipientState.TriggerCheck(context.State, pair, msg);
 
-                return Task.FromResult(context);
+                    foreach (TransferTokenMessage action in result)
+                    {
+                        context.SendMessage(context.State.TokenManagerAgent, action, null);
+                    }
+
+                    return Task.FromResult(context);
+                }
             }
 
             switch (message)
             {
                 default:
-                    Task<AgentContext<RecipientState<T>>> secondaryContextTask = base.Run(agentState, self, message);
+                    Task<AgentContext<RecipientState>> secondaryContextTask = base.Run(agentState, self, message);
                     var secondaryContext = secondaryContextTask.GetAwaiter().GetResult();
                     context.MergeSecondaryContext(secondaryContext.GetCommands());
                     break;

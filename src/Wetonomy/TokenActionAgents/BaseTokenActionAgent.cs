@@ -8,21 +8,22 @@ using System.Linq;
 using Wetonomy.TokenActionAgents.State;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Wetonomy.TokenActionAgents.Strategies;
 
 namespace Wetonomy.TokenActionAgents
 {
-	public class BaseTokenActionAgent<T> where T : IEquatable<T>
+	public class BaseTokenActionAgent
     {
-        public Task<AgentContext<RecipientState<T>>> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<RecipientState>> Run(object state, AgentCapability self, object message)
         {
-            var agentState = state as RecipientState<T> ?? new RecipientState<T>();
-            var context = new AgentContext<RecipientState<T>>(agentState, self);
+            var agentState = state as RecipientState ?? new RecipientState();
+            var context = new AgentContext<RecipientState>(agentState, self);
 
             //if (message is AbstractTrigger msg && context.State.TriggerToAction.ContainsKey((msg.Sender, message.GetType())))
             //{
-            //    var result = RecipientState<T>.TriggerCheck(context.State, msg.Sender, msg);
+            //    var result = RecipientState.TriggerCheck(context.State, msg.Sender, msg);
 
-            //    foreach (BurnTokenMessage<T> action in result)
+            //    foreach (BurnTokenMessage action in result)
             //    {
             //        context.SendMessage(context.State.TokenManagerAgent, action, null);
             //        //here we need to make a publication TokensBurnedTriggerer
@@ -33,16 +34,19 @@ namespace Wetonomy.TokenActionAgents
 
             switch (message)
             {
-                case TokenActionAgentInitMessage<T> initMessage:
+                case TokenActionAgentInitMessage initMessage:
                     context.State.TokenManagerAgent = initMessage.TokenManagerAgentCapability;
-                    context.State.TriggerToAction = initMessage.TriggererToAction;
+                    context.State.TriggerToAction = initMessage.TriggererToAction ?? new Dictionary<AgentTriggerPair, ITriggeredAction>();
+                    context.State.Recipients = initMessage.Recipients;// ?? new List<IAgentTokenKey>();
+                    context.State.SelfId = self.Issuer;
+
                     var distributeCapabilityMessage = new DistributeCapabilitiesMessage
                     {
                         Id = self.Issuer,
                         AgentCapabilities = new Dictionary<string, AgentCapability>() {
-                            {"AddRecipientMessage", context.IssueCapability(new[]{ typeof(AddRecipientMessage<T>) }) },
-                            {"RemoveRecipientMessage", context.IssueCapability(new[]{ typeof(RemoveRecipientMessage<T>) }) },
-                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage<T>) }) },
+                            {"AddRecipientMessage", context.IssueCapability(new[]{ typeof(AddRecipientMessage) }) },
+                            {"RemoveRecipientMessage", context.IssueCapability(new[]{ typeof(RemoveRecipientMessage) }) },
+                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage) }) },
                         }
                     };
                     if (initMessage.Subscription != null)
@@ -55,21 +59,21 @@ namespace Wetonomy.TokenActionAgents
                     context.SendMessage(initMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
                     break;
 
-                case AddRecipientMessage<T> addMessage:
+                case AddRecipientMessage addMessage:
                     if (context.State.AddRecipient(addMessage.Recipient))
                     {
-                        context.MakePublication(new RecipientAddedPublication<T>(addMessage.Recipient));
+                        context.MakePublication(new RecipientAddedPublication(addMessage.Recipient));
                     }
                     break;
 
-                case RemoveRecipientMessage<T> removeMessage:
+                case RemoveRecipientMessage removeMessage:
                     if (context.State.RemoveRecipient(removeMessage.Recipient))
                     {
-                        context.MakePublication(new RecipientRemovedPublication<T>(removeMessage.Recipient));
+                        context.MakePublication(new RecipientRemovedPublication(removeMessage.Recipient));
                     }
                     break;
 
-                case AddTriggerToActionMessage<T> addTriggerMessage:
+                case AddTriggerToActionMessage addTriggerMessage:
                     context.State.TriggerToAction.Add(addTriggerMessage.Trigger, addTriggerMessage.Action);
                     break;
             }

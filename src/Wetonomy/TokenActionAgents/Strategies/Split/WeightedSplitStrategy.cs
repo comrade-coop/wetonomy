@@ -8,23 +8,31 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents.Strategies.Split
 {
-	public class UniformSplitterStrategy: ITriggeredAction
-	{
-		public IList<object> Execute(RecipientState state, AbstractTrigger message)
-		{
+	public class WeightedSplitStrategy: ITriggeredAction
+    {
+        public IList<object> Execute(RecipientState state, AbstractTrigger message)
+        {
             var result = new List<object>();
             BigInteger amount = message.Amount;
             int count = state.Recipients.Count;
             if (count == 0) throw new Exception();
-            BigInteger portion = amount / count;
-            // We are going to lose tokens because we are using integer
-            foreach( IAgentTokenKey recipient in state.Recipients)
+            double weightsSum = 0;
+            foreach (TokenPairKey<double> recipient in state.Recipients)
             {
-                var command = new TransferTokenMessage(portion, default, recipient);
+                weightsSum += recipient.GetTag();
+            }
+
+
+            BigInteger portion = amount / (int)weightsSum;
+            
+            // We are going to lose tokens because we are using integer
+            foreach (TokenPairKey<double> recipient in state.Recipients)
+            {
+                var command = new TransferTokenMessage(portion, new TokenPairKey<double>(state.SelfId, 0), recipient);
                 amount -= portion;
                 result.Add(command);
             }
             return result;
         }
-	}
+    }
 }

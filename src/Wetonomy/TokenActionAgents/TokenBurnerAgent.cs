@@ -9,47 +9,54 @@ using Wetonomy.TokenActionAgents.State;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Wetonomy.TokenActionAgents.Messages.Notifications;
+using Wetonomy.TokenActionAgents.Strategies;
+using Wetonomy.TokenManager;
 
 namespace Wetonomy.TokenActionAgents
 {
-    public class TokenBurnerAgent<T> where T : IEquatable<T>
+    public class TokenBurnerAgent
     {
-        public Task<AgentContext<TokenBurnerState<T>>> Run(object state, AgentCapability self, object message)
+        public Task<AgentContext<TokenBurnerState>> Run(object state, AgentCapability self, object message)
         {
-            var agentState = state as TokenBurnerState<T> ?? new TokenBurnerState<T>();
-            var context = new AgentContext<TokenBurnerState<T>>(agentState, self);
+            var agentState = state as TokenBurnerState ?? new TokenBurnerState();
+            var context = new AgentContext<TokenBurnerState>(agentState, self);
 
-            if (message is AbstractTrigger msg && context.State.TriggerToAction.ContainsKey((msg.Sender, message.GetType())))
+            if (message is AbstractTrigger msg)
             {
-                var result = RecipientState<T>.TriggerCheck(context.State, msg.Sender, msg);
-
-                foreach (var action in result)
+                var pair = new AgentTriggerPair(msg.Sender, message.GetType());
+                if (context.State.TriggerToAction.ContainsKey(pair))
                 {
-                    if (action is BurnTokenMessage<T> burnMsg)
+                    var result = RecipientState.TriggerCheck(context.State, pair, msg);
+
+                    foreach (var action in result)
                     {
-                        context.SendMessage(context.State.TokenManagerAgent, burnMsg, null);
+                        if (action is BurnTokenMessage burnMsg)
+                        {
+                            context.SendMessage(context.State.TokenManagerAgent, burnMsg, null);
+                        }
+                        //Publication
+                        if (action is TokensBurnedTriggerer trigger)
+                        {
+                            context.MakePublication(trigger);
+                        }
                     }
-                    //Publication
-                    if (action is TokensBurnedTriggerer<T> trigger)
-                    {
-                        context.MakePublication(trigger);
-                    }
+
+                    return Task.FromResult(context);
                 }
-
-                return Task.FromResult(context);
             }
-
             switch(message)
             {
-                case TokenActionAgentInitMessage<T> initMessage:
+                case TokenActionAgentInitMessage initMessage:
                     context.State.TokenManagerAgent = initMessage.TokenManagerAgentCapability;
-                    context.State.TriggerToAction = initMessage.TriggererToAction;
+                    context.State.TriggerToAction = initMessage.TriggererToAction ?? new Dictionary<AgentTriggerPair, ITriggeredAction>();
+                    context.State.SelfId = self.Issuer;
+
                     var distributeCapabilityMessage = new DistributeCapabilitiesMessage
                     {
                         Id = self.Issuer,
                         AgentCapabilities = new Dictionary<string, AgentCapability>() {
-                            {"GetTokensMessage", context.IssueCapability(new[]{ typeof(GetTokensMessage<T>) }) },
-                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage<T>) }) },
+                            {"GetTokensMessage", context.IssueCapability(new[]{ typeof(GetTokensMessage) }) },
+                            {"AddTriggerToActionMessage", context.IssueCapability(new[]{ typeof(AddTriggerToActionMessage) }) },
                         }
                     };
                     if (initMessage.Subscription != null)
@@ -62,24 +69,24 @@ namespace Wetonomy.TokenActionAgents
                     context.SendMessage(initMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
                     break;
 
-                case TokensTransferedNotification<T> transferedMessage:
+                case TokensTransferedNotification transferedMessage:
                     if (context.State.AddRecipient(transferedMessage.From))
                     {
                         context.State.TransferMessages.Add(transferedMessage);
-                        context.MakePublication(new RecipientAddedPublication<T>(transferedMessage.From));
+                        context.MakePublication(new RecipientAddedPublication(transferedMessage.From));
                     }
                     break;
 
-                case GetTokensMessage<T> getTokensMessage:
-                    T agentSender;
+                case GetTokensMessage getTokensMessage:
+                    IAgentTokenKey agentSender;
                     if (context.State.GetTokens(getTokensMessage.Recipient, getTokensMessage.Amount, out agentSender))
                     {
-                        var transfer = new TransferTokenMessage<T>(getTokensMessage.Amount, agentSender, getTokensMessage.Recipient);
+                        var transfer = new TransferTokenMessage(getTokensMessage.Amount, agentSender, getTokensMessage.Recipient);
                         context.SendMessage(null, transfer, null);
                     }
                     break;
 
-                case AddTriggerToActionMessage<T> addTriggerMessage:
+                case AddTriggerToActionMessage addTriggerMessage:
                     context.State.TriggerToAction.Add(addTriggerMessage.Trigger,addTriggerMessage.Action);
                     break;
             }

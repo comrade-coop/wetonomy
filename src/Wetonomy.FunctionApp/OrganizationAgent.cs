@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Wetonomy.TokenActionAgents.Messages;
 using Wetonomy.TokenActionAgents.Messages.Notifications;
+using Wetonomy.TokenActionAgents.State;
 using Wetonomy.TokenActionAgents.Strategies;
 using Wetonomy.TokenActionAgents.Strategies.Burn;
 using Wetonomy.TokenActionAgents.Strategies.Mint;
@@ -42,9 +43,6 @@ namespace Wetonomy.FunctionApp
 
                     var memberFactoryInitMessage = new InitWetonomyAgentMessage(distributeCapability);
                     context.CreateAgent("memberAndGroupFactory", "MemberAndGroupFactoryAgent", memberFactoryInitMessage, null);
-
-
-                    
                     break;
 
                 case DistributeCapabilitiesMessage DistributeCapabilitiesMessage:
@@ -74,10 +72,11 @@ namespace Wetonomy.FunctionApp
 
                         case "moneyTokenManager":
                             var mintCapability = DistributeCapabilitiesMessage.AgentCapabilities["MintTokenMessage"];
-                            var moneyTokenMinter = new TokenActionAgentInitMessage<AgentCapability>(
+                            var moneyTokenMinter = new TokenActionAgentInitMessage(
                                 mintCapability,
                                 distributeCapability,
-                                new Dictionary<(string, Type), ITriggeredAction<AgentCapability>>(),
+                                new Dictionary<AgentTriggerPair, ITriggeredAction>(),
+                                null,
                                 new HashSet<string>() { "debtTokenBurner", "allowanceTokenBurner" });
                             context.CreateAgent("moneyTokenMinter", "TokenMinterAgent", moneyTokenMinter, null);
                             break;
@@ -95,50 +94,49 @@ namespace Wetonomy.FunctionApp
 
                         case "cashTokenManager":
                             var splitCapability = DistributeCapabilitiesMessage.AgentCapabilities["TransferTokenMessage"];
-                            var tokenSplitterAgent = new TokenActionAgentInitMessage<AgentCapability>(
+                            var tokenSplitterAgent = new TokenActionAgentInitMessage(
                                 splitCapability,
                                 distributeCapability,
-                                new Dictionary<(string, Type), ITriggeredAction<AgentCapability>>()
+                                new Dictionary<AgentTriggerPair, ITriggeredAction>()
                                 {
-                                        { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), new UniformSplitterStrategy<AgentCapability>()}
+                                        { new AgentTriggerPair("cashTokenManager", typeof(TokensTransferedNotification)), new UniformSplitterStrategy()}
                                 },
-                                null);
+                                new List<IAgentTokenKey>() { new SingleAngentTokenKey("cashTokenBurnerForDebt"), new SingleAngentTokenKey("cashTokenBurnerForAllowance") });
                             context.CreateAgent("cashTokenSplitter", "TokenSplitterAgent", tokenSplitterAgent, null);
 
 
                             var burnCapability = DistributeCapabilitiesMessage.AgentCapabilities["BurnTokenMessage"];
-                            var cashTokenBurnerForDebt = new TokenActionAgentInitMessage<AgentCapability>(
+                            var cashTokenBurnerForDebt = new TokenActionAgentInitMessage(
                                 burnCapability,
                                 distributeCapability,
-                                new Dictionary<(string, Type), ITriggeredAction<AgentCapability>>()
+                                new Dictionary<AgentTriggerPair,ITriggeredAction>()
                                 {
-                                        { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), new SelfBurnStrategy<AgentCapability>()}
-                                },
-                                null);
+                                        { new AgentTriggerPair("cashTokenManager", typeof(TokensTransferedNotification)), new SelfBurnStrategy()}
+                                });
                             context.CreateAgent("cashTokenBurnerForDebt", "TokenBurnerAgent", cashTokenBurnerForDebt, null);
 
 
-                            var cashTokenBurnerForAllowance = new TokenActionAgentInitMessage<AgentCapability>(
+                            var cashTokenBurnerForAllowance = new TokenActionAgentInitMessage(
                                 burnCapability,
                                 distributeCapability,
-                                new Dictionary<(string, Type), ITriggeredAction<AgentCapability>>()
+                                new Dictionary<AgentTriggerPair,ITriggeredAction>()
                                 {
-                                        { ("cashTokenManager", typeof(TokensTransferedNotification<AgentCapability>)), new SelfBurnStrategy<AgentCapability>()}
-                                },
-                                null);
+                                        { new AgentTriggerPair("cashTokenManager", typeof(TokensTransferedNotification)), new SelfBurnStrategy()}
+                                });
                             context.CreateAgent("cashTokenBurnerForAllowance", "TokenBurnerAgent", cashTokenBurnerForAllowance, null);
                             break;
 
                         case "debtTokenManager":
                             //Need subscribtion
                             var debtBurnCapability = DistributeCapabilitiesMessage.AgentCapabilities["BurnTokenMessage"];
-                            var debtTokenBurner = new TokenActionAgentInitMessage<AgentCapability>(
+                            var debtTokenBurner = new TokenActionAgentInitMessage(
                                 debtBurnCapability,
                                 distributeCapability,
-                                new Dictionary<(string, Type), ITriggeredAction<AgentCapability>>()
+                                new Dictionary<AgentTriggerPair,ITriggeredAction>()
                                 {
-                                        { ("cashTokenBurnerForDebt" ,typeof(TokensBurnedTriggerer<AgentCapability>)), new SequentialBurnStrategy<AgentCapability>()}
+                                        { new AgentTriggerPair("cashTokenBurnerForDebt", typeof(TokensBurnedTriggerer)), new SequentialBurnStrategy()}
                                 },
+                                null,
                                 new HashSet<string>() { "cashTokenBurnerForDebt" });
                             context.CreateAgent("debtTokenBurner", "TokenBurnerAgent", debtTokenBurner, null);
                             break;
@@ -146,13 +144,14 @@ namespace Wetonomy.FunctionApp
                         case "allowanceTokenManager":
                             //Need subscribtion
                             var allowanceBurnCapability = DistributeCapabilitiesMessage.AgentCapabilities["BurnTokenMessage"];
-                            var allowanceTokenBurner = new TokenActionAgentInitMessage<AgentCapability>(
+                            var allowanceTokenBurner = new TokenActionAgentInitMessage(
                                 allowanceBurnCapability,
                                 distributeCapability,
-                                new Dictionary<(string, Type), ITriggeredAction<AgentCapability>>()
+                                new Dictionary<AgentTriggerPair,ITriggeredAction>()
                                 {
-                                        { ("cashTokenBurnerForAllowance" ,typeof(TokensBurnedTriggerer<AgentCapability>)), new SequentialBurnStrategy<AgentCapability>()}
+                                        { new AgentTriggerPair("cashTokenBurnerForAllowance" ,typeof(TokensBurnedTriggerer)), new SequentialBurnStrategy()}
                                 },
+                                null,
                                 new HashSet<string>() { "cashTokenBurnerForAllowance" });
                             context.CreateAgent("allowanceTokenBurner", "TokenBurnerAgent", allowanceTokenBurner, null);
                             break;
@@ -160,31 +159,31 @@ namespace Wetonomy.FunctionApp
                         case "debtTokenBurner":
                             //Need subscribtion
                             var cap1 = context.State.AgentToCapabilities["moneyTokenMinter"]["AddTriggerToActionMessage"];
-                            var debtBurnTrigger = new AddTriggerToActionMessage<AgentCapability>(("debtTokenBurner", typeof(TokensBurnedTriggerer<AgentCapability>)), new SingleMintAfterBurnStrategy<AgentCapability>());
+                            var debtBurnTrigger = new AddTriggerToActionMessage(new AgentTriggerPair("debtTokenBurner", typeof(TokensBurnedTriggerer)), new SingleMintAfterBurnStrategy());
                             context.SendMessage(cap1, debtBurnTrigger, null);
                             break;
 
                         case "allowanceTokenBurner":
                             //Need subscribtion
                             var cap2 = context.State.AgentToCapabilities["moneyTokenMinter"]["AddTriggerToActionMessage"];
-                            var allowanceBurnTrigger = new AddTriggerToActionMessage<AgentCapability>(("allowanceTokenBurner", typeof(TokensBurnedTriggerer<AgentCapability>)), new SingleMintAfterBurnStrategy<AgentCapability>());
+                            var allowanceBurnTrigger = new AddTriggerToActionMessage(new AgentTriggerPair("allowanceTokenBurner", typeof(TokensBurnedTriggerer)), new SingleMintAfterBurnStrategy());
                             context.SendMessage(cap2, allowanceBurnTrigger, null);
 
                             // Imitate user action
-                            var mintCap = context.IssueCapability(new[] { typeof(TokensMintedNotification<AgentCapability>) });
-                            context.AddReminder(TimeSpan.FromSeconds(20), new MintTokenMessage<AgentCapability>(100, mintCap));
+                            var mintSingleKey = new SingleAngentTokenKey(self.Issuer);
+                            context.AddReminder(TimeSpan.FromSeconds(5), new MintTokenMessage(100, mintSingleKey));
                             break;
                     }
                     break;
 
-                case MintTokenMessage<AgentCapability> mintCashToken:
+                case MintTokenMessage mintCashToken:
                     var cashTokenManager = context.State.AgentToCapabilities["cashTokenManager"]["MintTokenMessage"];
                     context.SendMessage(cashTokenManager, mintCashToken, null);
                     break;
 
-                case TokensMintedNotification<AgentCapability> tokensMintedNotification:
+                case TokensMintedNotification tokensMintedNotification:
                     var transferCashTokenManager = context.State.AgentToCapabilities["cashTokenManager"]["TransferTokenMessage"];
-                    context.SendMessage(transferCashTokenManager, new TransferTokenMessage<AgentCapability>(100,), null);
+                    context.SendMessage(transferCashTokenManager, new TransferTokenMessage(100, new SingleAngentTokenKey(self.Issuer), new SingleAngentTokenKey("cashTokenSplitter")), null);
                     break;
 
             }

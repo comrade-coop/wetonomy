@@ -2,15 +2,15 @@ using System.Numerics;
 
 namespace Wetonomy.TokenManager.Publications
 {
-    public class TokenTransferPublication<T>
+    public class TokenTransferPublication
     {
         public BigInteger Amount { get; }
 
-        public T From { get; }
+        public IAgentTokenKey From { get; }
 
-        public T To { get; }
+        public IAgentTokenKey To { get; }
 
-        public TokenTransferPublication(BigInteger amount, T from, T to)
+        public TokenTransferPublication(BigInteger amount, IAgentTokenKey from, IAgentTokenKey to)
         {
             Amount = amount;
             From = from;

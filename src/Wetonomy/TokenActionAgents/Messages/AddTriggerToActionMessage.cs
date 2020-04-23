@@ -6,12 +6,12 @@ using Wetonomy.TokenActionAgents.Strategies;
 
 namespace Wetonomy.TokenActionAgents.Messages
 {
-	public class AddTriggerToActionMessage<T> where T: IEquatable<T>
+	public class AddTriggerToActionMessage
 	{
-		public (string, Type) Trigger { get; }
-		public ITriggeredAction<T> Action { get; }
+		public AgentTriggerPair Trigger { get; }
+		public ITriggeredAction Action { get; }
 
-		public AddTriggerToActionMessage((string, Type) trigger, ITriggeredAction<T> action)
+		public AddTriggerToActionMessage(AgentTriggerPair trigger, ITriggeredAction action)
 		{
 			Trigger= trigger;
 			Action = action;

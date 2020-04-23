@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Wetonomy.TokenManager;
 
 namespace Wetonomy.TokenActionAgents.Messages
 {
-    class RemoveRecipientMessage<T>
+    class RemoveRecipientMessage
     {
-        public T Recipient;
+        public IAgentTokenKey Recipient;
 
-        public RemoveRecipientMessage(T recipient)
+        public RemoveRecipientMessage(IAgentTokenKey recipient)
         {
             Recipient = recipient;
         }

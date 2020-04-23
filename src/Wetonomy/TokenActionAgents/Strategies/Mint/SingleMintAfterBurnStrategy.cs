@@ -7,13 +7,13 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents.Strategies.Mint
 {
-	public class SingleMintAfterBurnStrategy<T> : ITriggeredAction<T> where T : IEquatable<T>
+	public class SingleMintAfterBurnStrategy : ITriggeredAction
 	{
-        public IList<object> Execute(RecipientState<T> _, AbstractTrigger message)
+        public IList<object> Execute(RecipientState _, AbstractTrigger message)
         {
-            if (message is TokensBurnedTriggerer<T> msg)
+            if (message is TokensBurnedTriggerer msg)
             {
-                var command = new MintTokenMessage<T>(msg.Amount, msg.From);
+                var command = new MintTokenMessage(msg.Amount, msg.From);
                 return new List<object>() { command };
             }
             return null;
