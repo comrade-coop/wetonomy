@@ -39,6 +39,9 @@ Governance module contains **Members**, **Groups** and **Voting**
 ### Token Flow
 This are the dynamics of the organizations. For example when you track work a reward token is minted, when investor makes investition he receives debt token, when salary is paid tokens are transferred ect.
 The main idea is everything to be automated and once created the organization works from itself.
+The core components here are **TokenManager** and **TokenActionAgent**
+* **TokenManager** is responsible for mintint, transfering, burning and keeping track of tokens.
+* **TokenActionAgent** is responsible for customly defined actions. You can assign to it differend **Triggers** for example when member traks work TokenActionAgent can mint tokens for reward.
 
 ### Work Management
 This module is responsible for work tracking. It could be tracking hours, predefined fix hours(monthly salary) or bounties for example.
