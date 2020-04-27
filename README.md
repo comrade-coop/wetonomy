@@ -42,6 +42,7 @@ The main idea is everything to be automated and once created the organization wo
 The core components here are **TokenManager** and **TokenActionAgent**
 * **TokenManager** is responsible for mintint, transfering, burning and keeping track of tokens.
 * **TokenActionAgent** is responsible for customly defined actions. You can assign to it differend **Triggers** for example when member traks work TokenActionAgent can mint tokens for reward.
+![alt text](https://github.com/comrade-coop/wetonomy/blob/master/docs/TokenFlow.png "Token Flow Diagram")
 
 ### Work Management
 This module is responsible for work tracking. It could be tracking hours, predefined fix hours(monthly salary) or bounties for example.
