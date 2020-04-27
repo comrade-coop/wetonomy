@@ -1,0 +1,3 @@
+[submodule "apocryph"]
+	path = apocryph
+	url = https://github.com/comrade-coop/apocryph.git
