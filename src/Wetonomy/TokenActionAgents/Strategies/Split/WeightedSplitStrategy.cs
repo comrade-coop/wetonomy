@@ -10,9 +10,9 @@ namespace Wetonomy.TokenActionAgents.Strategies.Split
 {
 	public class WeightedSplitStrategy: ITriggeredAction
     {
-        public IList<object> Execute(RecipientState state, AbstractTrigger message)
+        public (IList<object>, IList<object>) Execute(RecipientState state, AbstractTrigger message)
         {
-            var result = new List<object>();
+            var messagesResult = new List<object>();
             BigInteger amount = message.Amount;
             int count = state.Recipients.Count;
             if (count == 0) throw new Exception();
@@ -28,11 +28,12 @@ namespace Wetonomy.TokenActionAgents.Strategies.Split
             // We are going to lose tokens because we are using integer
             foreach (TokenPairKey<double> recipient in state.Recipients)
             {
-                var command = new TransferTokenMessage(portion, new TokenPairKey<double>(state.SelfId, 0), recipient);
+                //msg.To.ChangeAgentId(state.SelfId)
+                var command = new TransferTokenMessage(portion, new SingleAngentTokenKey(state.SelfId), recipient);
                 amount -= portion;
-                result.Add(command);
+                messagesResult.Add(command);
             }
-            return result;
+            return (messagesResult, null);
         }
     }
 }

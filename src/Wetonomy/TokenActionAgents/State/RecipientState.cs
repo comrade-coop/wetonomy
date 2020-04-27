@@ -1,6 +1,7 @@
 using Apocryph.Agents.Testbed.Api;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Wetonomy.TokenActionAgents.Strategies;
 using Wetonomy.TokenManager;
 using Wetonomy.TokenManager.Messages;
@@ -37,13 +38,13 @@ namespace Wetonomy.TokenActionAgents.State
         }
 
 
-        public static IList<object> TriggerCheck(RecipientState state, AgentTriggerPair pair, AbstractTrigger message)
+        public static (IList<object>, IList<object>) TriggerCheck(RecipientState state, AgentTriggerPair pair, AbstractTrigger message)
         {
             ITriggeredAction func = state.TriggerToAction[pair];
 
-            IList<object> result = func.Execute(state, message);
+            (IList<object>, IList<object>) result = func.Execute(state, message);
 
-            return result;
+            return (result.Item1 ?? new List<object>(), result.Item2 ?? new List<object>());
 
         }
     }

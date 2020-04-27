@@ -23,24 +23,22 @@ namespace Wetonomy.TokenActionAgents
                 var pair = new AgentTriggerPair(msg.Sender, message.GetType());
                 if (context.State.TriggerToAction.ContainsKey(pair))
                 {
-                    var result = RecipientState.TriggerCheck(context.State, pair, msg);
+                    (IList<object>, IList<object>) result = RecipientState.TriggerCheck(context.State, pair, msg);
 
-                    foreach (var action in result)
+                    foreach (MintTokenMessage action in result.Item1)
                     {
-                        if (action is MintTokenMessage mintMsg)
-                        {
-                            context.SendMessage(context.State.TokenManagerAgent, mintMsg, null);
-                        }
-                        //Publication
-                        if (action is TokensMintedTriggerer trigger)
-                        {
-                            context.MakePublication(trigger);
-                        }
+                        context.SendMessage(context.State.TokenManagerAgent, action, null);
+                    }
+
+                    foreach (var publication in result.Item2)
+                    {
+                        context.MakePublication(publication);
                     }
 
                     return Task.FromResult(context);
                 }
             }
+
             switch (message)
             {
                 //case SomeMessage msg : break;

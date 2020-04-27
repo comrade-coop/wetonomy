@@ -19,17 +19,25 @@ namespace Wetonomy.TokenActionAgents
             var agentState = state as RecipientState ?? new RecipientState();
             var context = new AgentContext<RecipientState>(agentState, self);
 
-            //if (message is AbstractTrigger msg && context.State.TriggerToAction.ContainsKey((msg.Sender, message.GetType())))
+            //if (message is AbstractTrigger msg)
             //{
-            //    var result = RecipientState.TriggerCheck(context.State, msg.Sender, msg);
-
-            //    foreach (BurnTokenMessage action in result)
+            //    var pair = new AgentTriggerPair(msg.Sender, message.GetType());
+            //    if (context.State.TriggerToAction.ContainsKey(pair))
             //    {
-            //        context.SendMessage(context.State.TokenManagerAgent, action, null);
-            //        //here we need to make a publication TokensBurnedTriggerer
-            //    }
+            //        (IList<object>, IList<object>) result = RecipientState.TriggerCheck(context.State, pair, msg);
 
-            //    return Task.FromResult(context);
+            //        foreach (var action in result.Item1)
+            //        {
+            //            context.SendMessage(context.State.TokenManagerAgent, action, null);
+            //        }
+
+            //        foreach (var publication in result.Item2)
+            //        {
+            //            context.MakePublication(publication);
+            //        }
+
+            //        return Task.FromResult(context);
+            //    }
             //}
 
             switch (message)

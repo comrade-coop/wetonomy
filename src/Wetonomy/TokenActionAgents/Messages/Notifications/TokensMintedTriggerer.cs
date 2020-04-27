@@ -7,14 +7,12 @@ using Wetonomy.TokenManager.Messages;
 
 namespace Wetonomy.TokenActionAgents.Messages.Notifications
 {
-    class TokensMintedTriggerer: AbstractTrigger
+    public class TokensMintedTriggerer: AbstractTrigger
     {
         public IAgentTokenKey To { get; }
 
-        public TokensMintedTriggerer(string sender, BigInteger amount, IAgentTokenKey to)
+        public TokensMintedTriggerer(string sender, BigInteger amount, IAgentTokenKey to) : base(amount, sender)
         {
-            Sender = sender;
-            Amount = amount;
             To = to;
         }
     }

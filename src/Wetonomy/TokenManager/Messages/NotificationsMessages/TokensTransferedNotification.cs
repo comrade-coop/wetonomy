@@ -10,10 +10,8 @@ namespace Wetonomy.TokenManager.Messages.NotificationsMessages
         public IAgentTokenKey From { get; }
         public IAgentTokenKey To { get; }
 
-        public TokensTransferedNotification(string sender, BigInteger amount, IAgentTokenKey from, IAgentTokenKey to)
+        public TokensTransferedNotification(string sender, BigInteger amount, IAgentTokenKey from, IAgentTokenKey to) : base(amount, sender)
         {
-            Sender = sender;
-            Amount = amount;
             From = from;
             To = to;
         }

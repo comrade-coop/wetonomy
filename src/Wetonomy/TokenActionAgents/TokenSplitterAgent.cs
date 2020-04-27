@@ -22,11 +22,16 @@ namespace Wetonomy.TokenActionAgents
                 var pair = new AgentTriggerPair(msg.Sender, message.GetType());
                 if (context.State.TriggerToAction.ContainsKey(pair))
                 {
-                    var result = RecipientState.TriggerCheck(context.State, pair, msg);
+                    (IList<object>, IList<object>) result = RecipientState.TriggerCheck(context.State, pair, msg);
 
-                    foreach (TransferTokenMessage action in result)
+                    foreach (TransferTokenMessage action in result.Item1)
                     {
                         context.SendMessage(context.State.TokenManagerAgent, action, null);
+                    }
+
+                    foreach (var publication in result.Item2)
+                    {
+                        context.MakePublication(publication);
                     }
 
                     return Task.FromResult(context);

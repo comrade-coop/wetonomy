@@ -1,4 +1,5 @@
 using Apocryph.Agents.Testbed.Api;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -13,9 +14,8 @@ namespace Wetonomy.TokenManager
         public class TokenManagerState: ITokenManagerState
         {
             public BigInteger TotalBalance { get; private set; }
-            public Dictionary<IAgentTokenKey, BigInteger> TokenBalances;
+            public Dictionary<IAgentTokenKey, BigInteger> TokenBalances = new Dictionary<IAgentTokenKey, BigInteger>();
 
-            //public TokenManagerState()
 
             public bool Burn(BigInteger amount, IAgentTokenKey from)
             {
@@ -48,21 +48,24 @@ namespace Wetonomy.TokenManager
 
             public bool Transfer(BigInteger amount, IAgentTokenKey from, IAgentTokenKey to)
             {
-                if (!TokenBalances.ContainsKey(from)) return false;
-                BigInteger current = TokenBalances[from];
-                if (current > amount)
+                if (TokenBalances.ContainsKey(from))
                 {
-                    TokenBalances[from] -= amount;
-                    TokenBalances[to] -= amount;
-                    return true;
+                    BigInteger current = TokenBalances[from];
+                    if (!TokenBalances.ContainsKey(to)) TokenBalances.Add(to, 0);
+                    if (current > amount)
+                    {
+                        TokenBalances[from] -= amount;
+                        TokenBalances[to] += amount;
+                        return true;
+                    }
+                    if (current == amount)
+                    {
+                        TokenBalances.Remove(from);
+                        TokenBalances[to] += amount;
+                        return true;
+                    }
                 }
-                if (current == amount)
-                {
-                    TokenBalances.Remove(from);
-                    TokenBalances.Add(to, amount);
-                    return true;
-                }
-                return false;
+                throw new Exception();
             }
         }
 

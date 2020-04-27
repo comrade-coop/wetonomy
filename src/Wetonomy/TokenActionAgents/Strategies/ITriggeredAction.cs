@@ -8,6 +8,7 @@ namespace Wetonomy.TokenActionAgents.Strategies
 {
 	public interface ITriggeredAction
 	{
-		public IList<object> Execute(RecipientState state, AbstractTrigger message);
+		//return 2 lists - one with messages and with publications
+		public (IList<object>, IList<object>) Execute(RecipientState state, AbstractTrigger message);
     }
 }

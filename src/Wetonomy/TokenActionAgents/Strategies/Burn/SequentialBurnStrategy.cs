@@ -13,16 +13,17 @@ namespace Wetonomy.TokenActionAgents.Strategies.Burn
 {
 	public class SequentialBurnStrategy : ITriggeredAction
 	{
-		public IList<object> Execute(RecipientState state, AbstractTrigger message)
+		public (IList<object>, IList<object>) Execute(RecipientState state, AbstractTrigger message)
 		{
-            var result = new List<object>();
+            var messagesResult = new List<object>();
+            var publicationResult = new List<object>();
             if (state is TokenBurnerState burnerState)
             {
                 BigInteger amount = message.Amount;
                 while (amount > 0)
                 {
                     IAgentTokenKey recipient = state.Recipients.First();
-                    TokensTransferedNotification element = burnerState.TransferMessages.FirstOrDefault(x => x.From.Equals(recipient));
+                    TokensMintedTriggerer element = burnerState.MintedMessages.FirstOrDefault(x => x.To.Equals(recipient));
                     BigInteger debt = element.Amount;
                     IAgentTokenKey sender = element.To;
 
@@ -32,7 +33,7 @@ namespace Wetonomy.TokenActionAgents.Strategies.Burn
                     if (debt <= amount)
                     {
                         state.Recipients.Remove(recipient);
-                        burnerState.TransferMessages.Remove(element);
+                        burnerState.MintedMessages.Remove(element);
                         amount -= debt;
                         command = new BurnTokenMessage(debt, sender);
                         command2 = new TokensBurnedTriggerer(state.SelfId, debt, recipient);
@@ -40,17 +41,18 @@ namespace Wetonomy.TokenActionAgents.Strategies.Burn
                     else
                     {
                         element.Amount -= amount;
-                        amount = 0;
                         command = new BurnTokenMessage(amount, sender);
                         command2 = new TokensBurnedTriggerer(state.SelfId, amount, recipient);
+
+                        amount = 0;
                     }
                     
-                    result.Add(command);
-                    result.Add(command2);
+                    messagesResult.Add(command);
+                    publicationResult.Add(command2);
                 }
 
             }
-            return result;
+            return (messagesResult, publicationResult);
         }
 	}
 }

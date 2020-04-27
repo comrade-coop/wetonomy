@@ -10,7 +10,7 @@ namespace Wetonomy.TokenManager
     {
         public string GetAgentId();
 
-        //public T GetSender();
+        public IAgentTokenKey ChangeAgentId(string newAgentId);
     }
 
     public class SingleAngentTokenKey : IAgentTokenKey
@@ -37,6 +37,11 @@ namespace Wetonomy.TokenManager
 
             var other = (SingleAngentTokenKey)obj;
             return AgentId == other.AgentId;
+        }
+
+        public IAgentTokenKey ChangeAgentId(string newAgentId)
+        {
+            return new SingleAngentTokenKey(newAgentId);
         }
     }
 

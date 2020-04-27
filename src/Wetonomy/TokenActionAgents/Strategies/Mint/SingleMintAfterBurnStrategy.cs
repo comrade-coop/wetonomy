@@ -9,14 +9,14 @@ namespace Wetonomy.TokenActionAgents.Strategies.Mint
 {
 	public class SingleMintAfterBurnStrategy : ITriggeredAction
 	{
-        public IList<object> Execute(RecipientState _, AbstractTrigger message)
+        public (IList<object>, IList<object>) Execute(RecipientState _, AbstractTrigger message)
         {
             if (message is TokensBurnedTriggerer msg)
             {
                 var command = new MintTokenMessage(msg.Amount, msg.From);
-                return new List<object>() { command };
+                return (new List<object>() { command }, null);
             }
-            return null;
+            return (null, null);
         }
     }
 }

@@ -11,10 +11,8 @@ namespace Wetonomy.TokenActionAgents.Messages.Notifications
     {
         public IAgentTokenKey From { get; }
 
-        public TokensBurnedTriggerer(string sender, BigInteger amount, IAgentTokenKey from)
+        public TokensBurnedTriggerer(string sender, BigInteger amount, IAgentTokenKey from) : base(amount, sender)
         {
-            Sender = sender;
-            Amount = amount;
             From = from;
         }
     }

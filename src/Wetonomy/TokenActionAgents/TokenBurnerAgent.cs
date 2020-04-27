@@ -26,25 +26,23 @@ namespace Wetonomy.TokenActionAgents
                 var pair = new AgentTriggerPair(msg.Sender, message.GetType());
                 if (context.State.TriggerToAction.ContainsKey(pair))
                 {
-                    var result = RecipientState.TriggerCheck(context.State, pair, msg);
+                    (IList<object>, IList<object>) result = RecipientState.TriggerCheck(context.State, pair, msg);
 
-                    foreach (var action in result)
+                    foreach (BurnTokenMessage action in result.Item1)
                     {
-                        if (action is BurnTokenMessage burnMsg)
-                        {
-                            context.SendMessage(context.State.TokenManagerAgent, burnMsg, null);
-                        }
-                        //Publication
-                        if (action is TokensBurnedTriggerer trigger)
-                        {
-                            context.MakePublication(trigger);
-                        }
+                        context.SendMessage(context.State.TokenManagerAgent, action, null);
+                    }
+
+                    foreach (var publication in result.Item2)
+                    {
+                        context.MakePublication(publication);
                     }
 
                     return Task.FromResult(context);
                 }
             }
-            switch(message)
+
+            switch (message)
             {
                 case TokenActionAgentInitMessage initMessage:
                     context.State.TokenManagerAgent = initMessage.TokenManagerAgentCapability;
@@ -69,11 +67,15 @@ namespace Wetonomy.TokenActionAgents
                     context.SendMessage(initMessage.CreatorAgentCapability, distributeCapabilityMessage, null);
                     break;
 
-                case TokensTransferedNotification transferedMessage:
-                    if (context.State.AddRecipient(transferedMessage.From))
+                //Tokens are minted on burner's addres so that he can burn them, 
+                //but they are actually for the user TokensMintedTriggerer.To
+                //He is added as recipient and he can take ownership of the tokens with GetTokensMessage
+                //This is done so that the system can work automaticly
+                case TokensMintedTriggerer transferedMessage:
+                    if (context.State.AddRecipient(transferedMessage.To))
                     {
-                        context.State.TransferMessages.Add(transferedMessage);
-                        context.MakePublication(new RecipientAddedPublication(transferedMessage.From));
+                        context.State.MintedMessages.Add(transferedMessage);
+                        context.MakePublication(new RecipientAddedPublication(transferedMessage.To));
                     }
                     break;
 
