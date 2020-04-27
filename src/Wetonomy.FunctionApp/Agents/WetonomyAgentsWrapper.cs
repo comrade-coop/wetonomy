@@ -99,7 +99,7 @@ namespace Wetonomy.FunctionApp.Agents
             [PerperStream("output")] IAsyncCollector<AgentCommands> output,
             CancellationToken cancellationToken)
         {
-            await _testbed.Agent(new TokenSplitterAgent().Run, agentId, initMessage, commands, output, cancellationToken);
+            await _testbed.Agent(new BaseTokenActionAgent().Run, agentId, initMessage, commands, output, cancellationToken);
         }
 
         [FunctionName("TokenBurnerAgent")]
@@ -123,7 +123,7 @@ namespace Wetonomy.FunctionApp.Agents
             [PerperStream("output")] IAsyncCollector<AgentCommands> output,
             CancellationToken cancellationToken)
         {
-            await _testbed.Agent(new TokenMinterAgent().Run, agentId, initMessage, commands, output, cancellationToken);
+            await _testbed.Agent(new BaseTokenActionAgent().Run, agentId, initMessage, commands, output, cancellationToken);
         }
     }
 }

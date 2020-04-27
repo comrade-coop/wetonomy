@@ -19,26 +19,26 @@ namespace Wetonomy.TokenActionAgents
             var agentState = state as RecipientState ?? new RecipientState();
             var context = new AgentContext<RecipientState>(agentState, self);
 
-            //if (message is AbstractTrigger msg)
-            //{
-            //    var pair = new AgentTriggerPair(msg.Sender, message.GetType());
-            //    if (context.State.TriggerToAction.ContainsKey(pair))
-            //    {
-            //        (IList<object>, IList<object>) result = RecipientState.TriggerCheck(context.State, pair, msg);
+            if (message is AbstractTrigger msg)
+            {
+                var pair = new AgentTriggerPair(msg.Sender, message.GetType());
+                if (context.State.TriggerToAction.ContainsKey(pair))
+                {
+                    (IList<object>, IList<object>) result = RecipientState.TriggerCheck(context.State, pair, msg);
 
-            //        foreach (var action in result.Item1)
-            //        {
-            //            context.SendMessage(context.State.TokenManagerAgent, action, null);
-            //        }
+                    foreach (var action in result.Item1)
+                    {
+                        context.SendMessage(context.State.TokenManagerAgent, action, null);
+                    }
 
-            //        foreach (var publication in result.Item2)
-            //        {
-            //            context.MakePublication(publication);
-            //        }
+                    foreach (var publication in result.Item2)
+                    {
+                        context.MakePublication(publication);
+                    }
 
-            //        return Task.FromResult(context);
-            //    }
-            //}
+                    return Task.FromResult(context);
+                }
+            }
 
             switch (message)
             {
