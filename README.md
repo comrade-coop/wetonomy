@@ -14,12 +14,7 @@ For now it runs with Apocryph **TestBet** until the Apocryph network is finalize
 
 ### Get git submodules
 Execute `git clone --recurse-submodules -j8 https://github.com/comrade-coop/wetonomy.git` to clone the repo along with submodules
-#### Switch submodule branch
-For now you should checkout apocryph submodule `dev-agent-model` because there is the **TestBet**
-```
-cd apocryph
-git checkout dev-agent-model
-```
+
 Once you've done that you can run the **Wetonomy.FunctionApp** which bootstraps the organization.
 
 ## Wetonomy Overview
