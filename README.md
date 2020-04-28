@@ -45,4 +45,4 @@ The core components here are **TokenManager** and **TokenActionAgent**
 ![alt text](https://github.com/comrade-coop/wetonomy/blob/master/docs/TokenFlow.png "Token Flow Diagram")
 
 ### Work Management
-This module is responsible for work tracking. It could be tracking hours, predefined fix hours(monthly salary) or bounties for example.
+This module is responsible for work tracking. It could be tracking hours, predefined fix hours(monthly salary) or bounties for example. The main idea is the reward for work to be tokens and that is how Work Management is connected to system dynamics.
