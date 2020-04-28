@@ -27,7 +27,7 @@ We can divide the organization architecture in 3 modules
 Governance module contains **Members**, **Groups** and **Voting**
 * **Member** is an agent that represent users in the organization. Being a member you get the permissions to vote, track work, create new decisions in the voting etc.
 
-* **Group** is an agent that gathers together Members so that they have common permissions. This is implemented via **rewarding**
+* **Group** is an agent that gathers together Members so that they have common permissions. This is implemented via **message forwarding**
 
 * **Voting** is the central governance mechanism. It can perform any kind of action as long as this is defined in the organization genesis, if you don't give the voting permissions it cannot operate.
 
