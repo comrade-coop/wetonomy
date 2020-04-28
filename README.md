@@ -3,7 +3,7 @@ Dao Framework build on top of [Apocryph](https://github.com/comrade-coop/apocryp
 
 Wetonomy gives you primitives to set up your organization workflow in the blockchain. It is build using**C#** and the [Actor Model](https://en.wikipedia.org/wiki/Actor_model)
 
-For now, it runs with Apocryph **TestBet** until the Apocryph network is finalized.
+For now, it runs with Apocryph **TestBed** until the Apocryph network is finalized.
 
 ## Getting Started
 
